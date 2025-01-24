@@ -242,3 +242,97 @@ document.getElementById("resetButton").addEventListener("click", function () {
 
     alert("All calendars and form data have been reset!");
 });
+
+function exportToJSON() {
+    const tables = document.querySelectorAll("#tablesContainer table");
+    const exportData = [];
+
+    tables.forEach((table, tableIndex) => {
+        const tableInfo = {
+            tableId: `table${tableIndex + 1}`,
+            rows: [],
+        };
+
+        table.querySelectorAll("tr").forEach((row, rowIndex) => {
+            const rowInfo = [];
+
+            row.querySelectorAll("td").forEach((cell, cellIndex) => {
+                const cellInfo = {
+                    content: cell.innerHTML.trim(),
+                    backgroundColor: window.getComputedStyle(cell).backgroundColor,
+                };
+                rowInfo.push(cellInfo);
+            });
+
+            tableInfo.rows.push(rowInfo);
+        });
+
+        exportData.push(tableInfo);
+    });
+
+    // Create a JSON blob and download it
+    const jsonBlob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: "application/json",
+    });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(jsonBlob);
+    link.download = "calendar_modifications.json";
+    link.click();
+}
+
+// Attach event listener to export button
+document.getElementById("exportButton").addEventListener("click", exportToJSON);
+
+function importFromJSON(event) {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const jsonData = JSON.parse(e.target.result);
+        applyImportedData(jsonData);
+    };
+    reader.readAsText(file);
+}
+
+function applyImportedData(data) {
+    const container = document.getElementById("tablesContainer");
+
+    // Clear any existing tables
+    container.innerHTML = "";
+
+    data.forEach((tableData) => {
+        const table = document.createElement("table");
+        table.classList.add(tableData.tableId);
+
+        tableData.rows.forEach((rowData) => {
+            const row = document.createElement("tr");
+
+            rowData.forEach((cellData) => {
+                const cell = document.createElement("td");
+                cell.innerHTML = cellData.content;
+                cell.style.backgroundColor = cellData.backgroundColor;
+
+                row.appendChild(cell);
+            });
+
+            table.appendChild(row);
+        });
+
+        // Reattach the header click event for coloring columns
+        attachClickEventToHeaders(table);
+
+        container.appendChild(table);
+    });
+
+    alert("Import completed successfully!");
+}
+
+// Attach event listeners to import button and file input
+document.getElementById("importButton").addEventListener("click", function () {
+    document.getElementById("importFileInput").click();
+});
+
+document.getElementById("importFileInput").addEventListener("change", importFromJSON);
