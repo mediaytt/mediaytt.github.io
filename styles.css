@@ -1,0 +1,144 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    color: #333;
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Align items at the top */
+    align-items: center;
+    padding-top: 50px; /* Add padding to ensure content is not cutoff */
+    overflow-y: auto; /* Enable vertical scrolling */
+}
+
+table {
+    width: 100%; /* Full width */
+    max-width: 900px; /* Limit table width for readability */
+    border-collapse: collapse; /* Remove spacing between table cells */
+    font-family: Arial, sans-serif; /* Font set to Arial */
+    font-size: 16px; /* Font size 11px */
+    text-align: center; /* Center align table text */
+    table-layout: fixed; /* Ensure consistent column width */
+    margin-bottom: 100px; /* Space between tables */
+    background-color: #fff; /* White background for tables */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for modern look */
+    border-radius: 8px; /* Rounded corners for modern style */
+}
+
+td {
+    border: 1px solid white; /* White borders around cells */
+    background-color: #fdfdfd; /* Light grey background color for cells */
+    padding: 10px; /* Padding for cell content */
+    vertical-align: top; /* Align text to the top of cells */
+    word-wrap: break-word; /* Allow content to wrap within the cell */
+    text-align: center; /* Center align text horizontally */
+}
+
+tr:first-child td {
+    vertical-align: middle; /* Center align header text vertically */
+    background-color: #fdfdfd;
+    text-transform: uppercase; /* Uppercase for header text */
+}
+
+tr:nth-child(2) td {
+    vertical-align: bottom; /* Align day numbers at the bottom of the cell */
+    text-align: center; /* Center align day numbers horizontally */
+}
+
+tr:nth-child(3) td {
+    text-align: center; /* Align text in the third row */
+    font-weight: bold; /* Bold for emphasis */
+    vertical-align: top; /* Align text to the top */
+    padding: 10px 5px; /* Adjust padding for the third row */
+    white-space: pre-wrap; /* Maintain line breaks in content */
+}
+
+form {
+    display: flex;
+    flex-direction: column; /* Stack form elements vertically */
+    align-items: center; /* Center form elements horizontally */
+    background-color: #fff; /* White background for the form */
+    padding: 20px;
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for modern look */
+    width: 300px; /* Fixed width for the form */
+    margin: 50px auto; /* Center the form on the page */
+}
+
+form label {
+    font-weight: bold; /* Emphasize labels */
+    margin: 10px 0 5px; /* Spacing between labels and inputs */
+}
+
+form input {
+    width: 100%; /* Full width of the form */
+    padding: 10px;
+    border: 1px solid #ccc; /* Light border */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 16px; /* Modern font size */
+    box-sizing: border-box; /* Ensure padding doesn't overflow */
+    margin-bottom: 15px; /* Space between inputs */
+}
+
+form button {
+    width: 100%; /* Full width for button */
+    padding: 10px;
+    background-color: #007BFF; /* Modern blue button */
+    color: #fff; /* White text */
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    font-size: 16px; /* Slightly larger text for button */
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+form button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+div {
+    padding-bottom: 20px; /* Space between tables */
+}
+
+#tablesContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto; /* Ensure it's centered */
+}
+
+#resetButton {
+    padding: 10px;
+    background-color: #007BFF; /* Modern blue button */
+    color: #fff; /* White text */
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    font-size: 16px; /* Slightly larger text for button */
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+    margin-bottom: 20px; /* Space between tables */
+}
+
+#resetButton:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+#formsContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Add space between forms and tables */
+}
+
+.monthForm {
+    width: 300px; /* Same styling as the single form */
+}
