@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-to-Speech Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Text-to-Speech Demo</h1>
+    <button id="speakButton">Speak a Random Word</button>
+
+    <script>
+        // Array of common words
+        const words = [
+            "strawberry", "Community", "Education", "Technology", "banana",
+            "Entertainment", "Environment", "lemon", "Imagination", "orange",
+            "Curiosity", "apple", "Accomplishment", "Responsibility", "mango",
+            "computer", "Investigation", "teacher", "Exploration", "memory"
+        ];
+
+        // Text-to-speech utility module
+        let speechSynth;
+        let voices = [];
+        const voiceCache = {};
+
+        function loadVoicesWhenAvailable(onComplete = () => {}) {
+            speechSynth = window.speechSynthesis;
+            
+            // Get available voices
+            const availableVoices = speechSynth.getVoices();
+
+            if (availableVoices.length !== 0) {
+                voices = availableVoices;
+                onComplete();
+            } else {
+                // Retry after a short delay if no voices are available yet
+                setTimeout(() => loadVoicesWhenAvailable(onComplete), 100);
+            }
+        }
+
+        function getVoices(locale) {
+            if (!speechSynth) {
+                throw new Error('Browser does not support speech synthesis');
+            }
+            
+            // Return cached voices if available
+            if (voiceCache[locale]) return voiceCache[locale];
+
+            // Filter voices by locale and cache the result
+            voiceCache[locale] = voices.filter(voice => voice.lang === locale);
+            return voiceCache[locale];
+        }
+
+        function speak(locale, text, onEnd) {
+            const availableVoices = getVoices(locale);
+            
+            if (availableVoices.length === 0) {
+                console.error(`No voices available for locale: ${locale}`);
+                return;
+            }
+
+            // Create and configure speech utterance
+            const utterance = new SpeechSynthesisUtterance();
+            utterance.voice = availableVoices[0];
+            utterance.volume = 1;     // 0 to 1
+            utterance.rate = 1;       // 0.1 to 10
+            utterance.pitch = 0.8;    // 0 to 2
+            utterance.text = text;
+            utterance.lang = locale;
+
+            if (onEnd && typeof onEnd === 'function') {
+                utterance.onend = onEnd;
+            }
+
+            // Cancel any ongoing speech and start new speech
+            speechSynth.cancel();
+            speechSynth.speak(utterance);
+        }
+
+        // Initialize the speech synthesis system when the document is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVoicesWhenAvailable(() => {
+                console.log("Text-to-speech voices loaded successfully");
+            });
+
+            // Add event listener to the button
+            document.getElementById('speakButton').addEventListener('click', () => {
+                const randomWord = words[Math.floor(Math.random() * words.length)];
+                speak("en-US", randomWord, () => {
+                    console.log("Speech completed");
+                });
+            });
+        });
+    </script>
+</body>
+</html>
