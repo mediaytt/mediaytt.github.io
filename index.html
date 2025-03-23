@@ -1,116 +1,253 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text-to-Speech Demo</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Memory Game - Text-to-Speech</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f4f7fa;
+      color: #333;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    h1 {
+      font-weight: 600;
+      font-size: 1.75rem;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    button {
+      padding: 12px 24px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background 0.25s ease;
+      margin-bottom: 12px;
+      margin-right: 8px;
+    }
+
+    button:hover {
+      background-color: #2563eb;
+    }
+
+    button:disabled {
+      background-color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    input[type="text"] {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    #speakingIndicator {
+      display: none;
+      margin-top: 12px;
+      text-align: center;
+      color: #3b82f6;
+      font-size: 18px;
+    }
+
+    #speakingIndicator .icon {
+      display: inline-block;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.2; }
+      50% { opacity: 1; }
+      100% { opacity: 0.2; }
+    }
+  </style>
 </head>
 <body>
-    <h1>Text-to-Speech Demo</h1>
-    <button id="speakButton">Speak a Random Word</button>
+  <div class="container">
+    <h1>Memory Game 🎧</h1>
 
-    <script>
-        // Array of common words
-        const words = [
-            "strawberry", "Community", "Education", "Technology", "banana",
-            "Entertainment", "Environment", "lemon", "Imagination", "orange",
-            "Curiosity", "apple", "Accomplishment", "Responsibility", "mango",
-            "computer", "Investigation", "teacher", "Exploration", "memory"
-        ];
+    <div id="gameControls">
+      <button id="startButton">Start Game</button>
+      <button id="replayButton" disabled>Replay Words (0)</button>
+    </div>
 
-        // Text-to-speech utility module
-        let speechSynth;
-        let voices = [];
-        const voiceCache = {};
+    <div id="speakingIndicator"><span class="icon">🔊 Speaking...</span></div>
 
-        function loadVoicesWhenAvailable(onComplete = () => {}) {
-            speechSynth = window.speechSynthesis;
-            
-            // Get available voices
-            const availableVoices = speechSynth.getVoices();
+    <div id="userInput" style="margin-top: 20px; display: none;">
+      <input type="text" id="userAnswer" placeholder="Enter the words you heard, separated by commas">
+      <button id="submitButton">Submit</button>
+    </div>
 
-            if (availableVoices.length !== 0) {
-                voices = availableVoices;
-                onComplete();
-            } else {
-                // Retry after a short delay if no voices are available yet
-                setTimeout(() => loadVoicesWhenAvailable(onComplete), 100);
-            }
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const words = [
+      "strawberry", "cycling", "ginger", "trading", "banana",
+      "rocket", "agency", "lemon", "pricing", "orange",
+      "curious", "apple", "circuit", "transport", "pepper",
+      "computer", "correct", "teacher", "results", "memory"
+    ];
+
+    let gameWords = [];
+    let replayCount = 0;
+    let speechSynth;
+    let voices = [];
+    const voiceCache = {};
+
+    function loadVoicesWhenAvailable(onComplete = () => {}) {
+      speechSynth = window.speechSynthesis;
+      const availableVoices = speechSynth.getVoices();
+      if (availableVoices.length !== 0) {
+        voices = availableVoices;
+        onComplete();
+      } else {
+        setTimeout(() => loadVoicesWhenAvailable(onComplete), 100);
+      }
+    }
+
+    function getVoices(locale) {
+      if (!speechSynth) throw new Error('Browser does not support speech synthesis');
+      if (voiceCache[locale]) return voiceCache[locale];
+      voiceCache[locale] = voices.filter(voice => voice.lang === locale);
+      return voiceCache[locale];
+    }
+
+    function speak(locale, text, onEnd) {
+      const availableVoices = getVoices(locale);
+      if (availableVoices.length === 0) {
+        console.error(`No voices available for locale: ${locale}`);
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance();
+      utterance.voice = availableVoices[0];
+      utterance.volume = 1;
+      utterance.rate = 1;
+      utterance.pitch = 0.8;
+      utterance.text = text;
+      utterance.lang = locale;
+
+      document.getElementById('speakingIndicator').style.display = 'block';
+
+      utterance.onend = () => {
+        document.getElementById('speakingIndicator').style.display = 'none';
+        if (onEnd && typeof onEnd === 'function') {
+          onEnd();
+        }
+      };
+
+      speechSynth.cancel();
+      speechSynth.speak(utterance);
+    }
+
+    function speakAllWords() {
+      let index = 0;
+      function speakNext() {
+        if (index < gameWords.length) {
+          speak("en-US", gameWords[index], () => {
+            index++;
+            setTimeout(speakNext, 500);
+          });
+        }
+      }
+      speakNext();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadVoicesWhenAvailable(() => {
+        console.log("Text-to-speech voices loaded successfully");
+      });
+
+      document.getElementById('startButton').addEventListener('click', () => {
+        gameWords = [];
+        replayCount = 0;
+        document.getElementById('replayButton').textContent = "Replay Words (0)";
+        document.getElementById('replayButton').disabled = false;
+        document.getElementById('userInput').style.display = "block";
+        document.getElementById('result').textContent = "";
+        document.getElementById('userAnswer').value = "";
+
+        while (gameWords.length < 7) {
+          const randomWord = words[Math.floor(Math.random() * words.length)];
+          if (!gameWords.includes(randomWord)) {
+            gameWords.push(randomWord);
+          }
         }
 
-        function getVoices(locale) {
-            if (!speechSynth) {
-                throw new Error('Browser does not support speech synthesis');
-            }
-            
-            // Return cached voices if available
-            if (voiceCache[locale]) return voiceCache[locale];
+        speakAllWords();
+      });
 
-            // Filter voices by locale and cache the result
-            voiceCache[locale] = voices.filter(voice => voice.lang === locale);
-            return voiceCache[locale];
-        }
+      document.getElementById('replayButton').addEventListener('click', () => {
+        replayCount++;
+        document.getElementById('replayButton').textContent = `Replay Words (${replayCount})`;
+        speakAllWords();
+      });
 
-        function speak(locale, text, onEnd) {
-            const availableVoices = getVoices(locale);
-            
-            if (availableVoices.length === 0) {
-                console.error(`No voices available for locale: ${locale}`);
-                return;
-            }
+      document.getElementById('submitButton').addEventListener('click', () => {
+        const userInput = document.getElementById('userAnswer').value.trim();
+        const userWords = userInput.split(',').map(w => w.trim().toLowerCase());
+        const correctWordsLower = gameWords.map(w => w.toLowerCase());
 
-            // Create and configure speech utterance
-            const utterance = new SpeechSynthesisUtterance();
-            utterance.voice = availableVoices[0];
-            utterance.volume = 1;     // 0 to 1
-            utterance.rate = 1;       // 0.1 to 10
-            utterance.pitch = 0.8;    // 0 to 2
-            utterance.text = text;
-            utterance.lang = locale;
+        let correctTotal = 0;
+        let correctInOrder = 0;
+        const countedWords = new Set();
 
-            if (onEnd && typeof onEnd === 'function') {
-                utterance.onend = onEnd;
-            }
-
-            // Cancel any ongoing speech and start new speech
-            speechSynth.cancel();
-            speechSynth.speak(utterance);
-        }
-
-        // Initialize the speech synthesis system when the document is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            loadVoicesWhenAvailable(() => {
-                console.log("Text-to-speech voices loaded successfully");
-            });
-
-            // Add event listener to the button
-            document.getElementById('speakButton').addEventListener('click', () => {
-                const randomWord = words[Math.floor(Math.random() * words.length)];
-                speak("en-US", randomWord, () => {
-                    console.log("Speech completed");
-                });
-            });
+        userWords.forEach(word => {
+          if (correctWordsLower.includes(word) && !countedWords.has(word)) {
+            correctTotal++;
+            countedWords.add(word);
+          }
         });
-    </script>
+
+        const minLength = Math.min(userWords.length, correctWordsLower.length);
+        for (let i = 0; i < minLength; i++) {
+          if (userWords[i] === correctWordsLower[i]) {
+            correctInOrder++;
+          }
+        }
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+          <p>You got <strong>${correctTotal}</strong> out of the ${gameWords.length} words.</p>
+          <p>You got <strong>${correctInOrder}</strong> in the correct order.</p>
+          <p><em>🧠 Correct words:</em> ${gameWords.join(', ')}</p>
+        `;
+      });
+    });
+  </script>
 </body>
 </html>
