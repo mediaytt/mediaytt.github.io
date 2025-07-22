@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Memory Game - Text-to-Speech</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f4f7fa;
+      color: #333;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    h1 {
+      font-weight: 600;
+      font-size: 1.75rem;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    button {
+      padding: 12px 24px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background 0.25s ease;
+      margin-bottom: 12px;
+      margin-right: 8px;
+    }
+
+    button:hover {
+      background-color: #2563eb;
+    }
+
+    button:disabled {
+      background-color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    input[type="text"] {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    #speakingIndicator {
+      display: none;
+      margin-top: 12px;
+      text-align: center;
+      color: #3b82f6;
+      font-size: 18px;
+    }
+
+    #speakingIndicator .icon {
+      display: inline-block;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.2; }
+      50% { opacity: 1; }
+      100% { opacity: 0.2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Memory Game 🎧</h1>
+
+    <div id="gameControls">
+      <button id="startButton">Start Game</button>
+      <button id="replayButton" disabled>Replay Words (0)</button>
+    </div>
+
+    <div id="speakingIndicator"><span class="icon">🔊 Speaking...</span></div>
+
+    <div id="userInput" style="margin-top: 20px; display: none;">
+      <input type="text" id="userAnswer" placeholder="Enter the words you heard, separated by commas">
+      <button id="submitButton">Submit</button>
+    </div>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const words = [
+      "strawberry", "cycling", "ginger", "trading", "perform",
+      "rocket", "agency", "lemon", "pricing", "orange",
+      "surface", "apple", "circuit", "transport", "pepper",
+      "market", "correct", "teacher", "results", "memory"
+    ];
+
+    let gameWords = [];
+    let replayCount = 0;
+    let speechSynth;
+    let voices = [];
+    const voiceCache = {};
+
+    function loadVoicesWhenAvailable(onComplete = () => {}) {
+      speechSynth = window.speechSynthesis;
+      const availableVoices = speechSynth.getVoices();
+      if (availableVoices.length !== 0) {
+        voices = availableVoices;
+        onComplete();
+      } else {
+        setTimeout(() => loadVoicesWhenAvailable(onComplete), 100);
+      }
+    }
+
+    function getVoices(locale) {
+      if (!speechSynth) throw new Error('Browser does not support speech synthesis');
+      if (voiceCache[locale]) return voiceCache[locale];
+      voiceCache[locale] = voices.filter(voice => voice.lang === locale);
+      return voiceCache[locale];
+    }
+
+    function speak(locale, text, onEnd) {
+      const availableVoices = getVoices(locale);
+      if (availableVoices.length === 0) {
+        console.error(`No voices available for locale: ${locale}`);
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance();
+      utterance.voice = availableVoices[0];
+      utterance.volume = 1;
+      utterance.rate = 1;
+      utterance.pitch = 0.8;
+      utterance.text = text;
+      utterance.lang = locale;
+
+      document.getElementById('speakingIndicator').style.display = 'block';
+
+      utterance.onend = () => {
+        document.getElementById('speakingIndicator').style.display = 'none';
+        if (onEnd && typeof onEnd === 'function') {
+          onEnd();
+        }
+      };
+
+      speechSynth.cancel();
+      speechSynth.speak(utterance);
+    }
+
+    function speakAllWords() {
+      let index = 0;
+      function speakNext() {
+        if (index < gameWords.length) {
+          speak("en-US", gameWords[index], () => {
+            index++;
+            setTimeout(speakNext, 500);
+          });
+        }
+      }
+      speakNext();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadVoicesWhenAvailable(() => {
+        console.log("Text-to-speech voices loaded successfully");
+      });
+
+      document.getElementById('startButton').addEventListener('click', () => {
+        gameWords = [];
+        replayCount = 0;
+        document.getElementById('replayButton').textContent = "Replay Words (0)";
+        document.getElementById('replayButton').disabled = false;
+        document.getElementById('userInput').style.display = "block";
+        document.getElementById('result').textContent = "";
+        document.getElementById('userAnswer').value = "";
+
+        while (gameWords.length < 7) {
+          const randomWord = words[Math.floor(Math.random() * words.length)];
+          if (!gameWords.includes(randomWord)) {
+            gameWords.push(randomWord);
+          }
+        }
+
+        speakAllWords();
+      });
+
+      document.getElementById('replayButton').addEventListener('click', () => {
+        replayCount++;
+        document.getElementById('replayButton').textContent = `Replay Words (${replayCount})`;
+        speakAllWords();
+      });
+
+      document.getElementById('submitButton').addEventListener('click', () => {
+        const userInput = document.getElementById('userAnswer').value.trim();
+        const userWords = userInput.split(',').map(w => w.trim().toLowerCase());
+        const correctWordsLower = gameWords.map(w => w.toLowerCase());
+
+        let correctTotal = 0;
+        let correctInOrder = 0;
+        const countedWords = new Set();
+
+        userWords.forEach(word => {
+          if (correctWordsLower.includes(word) && !countedWords.has(word)) {
+            correctTotal++;
+            countedWords.add(word);
+          }
+        });
+
+        const minLength = Math.min(userWords.length, correctWordsLower.length);
+        for (let i = 0; i < minLength; i++) {
+          if (userWords[i] === correctWordsLower[i]) {
+            correctInOrder++;
+          }
+        }
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+          <p>You got <strong>${correctTotal}</strong> out of the ${gameWords.length} words.</p>
+          <p>You got <strong>${correctInOrder}</strong> in the correct order.</p>
+          <p><em>🧠 Correct words:</em> ${gameWords.join(', ')}</p>
+        `;
+      });
+    });
+  </script>
+</body>
+</html>
