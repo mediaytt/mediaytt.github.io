@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LaTeX Extractor</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    textarea { width: 100%; height: 150px; margin: 10px 0; }
+    button { padding: 10px 20px; }
+  </style>
+</head>
+<body>
+  <h2>LaTeX Extractor</h2>
+  <textarea id="input" placeholder="Paste content here..."></textarea>
+  <button onclick="extractLatex()">Extract LaTeX</button>
+  <textarea id="output" readonly placeholder="Extracted LaTeX will appear here..."></textarea>
+  <button onclick="copyOutput()">Copy</button>
+  <script>
+    function extractLatex() {
+      const text = document.getElementById("input").value;
+      // Match anything inside \[...\] or $$...$$
+      const pattern = /\\\[(.*?)\\\]|\$\$(.*?)\$\$|\\\((.*?)\\\)|\$(.*?)\$/gs;
+
+/\\\[(.*?)\\\]|\$\$(.*?)\$\$/gs;
+      let match, results = [];
+      while ((match = pattern.exec(text)) !== null) {
+        results.push(match[1] || match[2]|| match[3]|| match[4]);
+      }
+      document.getElementById("output").value = results.map(result => result + '\\\\').join('\n%\n');
+    }
+    function copyOutput() {
+      const output = document.getElementById("output");
+      output.select();
+      output.setSelectionRange(0, 99999); // For mobile devices
+      document.execCommand("copy");
+    }
+  </script>
+</body>
+</html>
