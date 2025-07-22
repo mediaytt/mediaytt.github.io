@@ -1,8 +1,10 @@
+<!-- LaTeX Extractor HTML file -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>LaTeX Extractor</title>
+  <!-- Simple CSS for layout -->
   <style>
     body { font-family: sans-serif; padding: 20px; }
     textarea { width: 100%; height: 150px; margin: 10px 0; }
@@ -10,24 +12,38 @@
   </style>
 </head>
 <body>
+  <!-- Page title -->
   <h2>LaTeX Extractor</h2>
+  <!-- Input textarea for user content -->
   <textarea id="input" placeholder="Paste content here..."></textarea>
+  <!-- Button to trigger extraction -->
   <button onclick="extractLatex()">Extract LaTeX</button>
+  <!-- Output textarea for extracted LaTeX -->
   <textarea id="output" readonly placeholder="Extracted LaTeX will appear here..."></textarea>
+  <!-- Button to copy output -->
   <button onclick="copyOutput()">Copy</button>
   <script>
+    // Extracts LaTeX expressions from the input textarea
     function extractLatex() {
       const text = document.getElementById("input").value;
-      // Match anything inside \[...\] or $$...$$
-      const pattern = /\\\[(.*?)\\\]|\$\$(.*?)\$\$|\\\((.*?)\\\)|\$(.*?)\$/gs;
+      // Regex matches: \[...\], $$...$$, \(...\), $...$
 
-/\\\[(.*?)\\\]|\$\$(.*?)\$\$/gs;
+      /*
+       /.../gs
+       \symbol (.*?) \symbol
+       use '|' to combine patterns
+      */ 
+      const pattern = /\\\[(.*?)\\\]|\$\$(.*?)\$\$|\\\((.*?)\\\)|\$(.*?)\$|`([^`]+)`/gs;
+
       let match, results = [];
+      // Collect all matches - track how many patterns above
       while ((match = pattern.exec(text)) !== null) {
-        results.push(match[1] || match[2]|| match[3]|| match[4]);
+        results.push(match[1] || match[2]|| match[3]|| match[4] || match[5]);
       }
+      // Format output: each result ends with \\ and separated by %
       document.getElementById("output").value = results.map(result => result + '\\\\').join('\n%\n');
     }
+    // Copies the output textarea content to clipboard
     function copyOutput() {
       const output = document.getElementById("output");
       output.select();
