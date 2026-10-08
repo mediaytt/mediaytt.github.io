@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elapsed Time Calculator</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+
+            font-family: Inter, -apple-system, BlinkMacSystemFont,
+                         "Segoe UI", sans-serif;
+
+            background: #ffffff;
+            color: #18181b;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 460px;
+            padding: 36px;
+
+            background: #ffffff;
+            border: 1px solid #e4e4e7;
+            border-radius: 22px;
+
+            box-shadow:
+                0 2px 6px rgba(0, 0, 0, 0.04),
+                0 12px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .icon {
+            width: 48px;
+            height: 48px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 20px;
+
+            background: #eef2ff;
+            border-radius: 14px;
+
+            font-size: 23px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+
+            font-size: 30px;
+            font-weight: 750;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            margin: 0 0 30px;
+
+            color: #71717a;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+
+            color: #3f3f46;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 16px;
+
+            background: #fafafa;
+            border: 1px solid #d4d4d8;
+            border-radius: 12px;
+
+            color: #18181b;
+            font-size: 18px;
+            font-weight: 500;
+
+            outline: none;
+
+            transition:
+                border-color 0.2s,
+                box-shadow 0.2s,
+                background 0.2s;
+        }
+
+        input::placeholder {
+            color: #a1a1aa;
+        }
+
+        input:focus {
+            background: #ffffff;
+            border-color: #6366f1;
+
+            box-shadow:
+                0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 4px;
+
+            border: none;
+            border-radius: 12px;
+
+            background: #4f46e5;
+            color: #ffffff;
+
+            font-size: 15px;
+            font-weight: 650;
+
+            cursor: pointer;
+
+            transition:
+                background 0.2s,
+                transform 0.15s,
+                box-shadow 0.15s;
+        }
+
+        button:hover {
+            background: #4338ca;
+
+            transform: translateY(-1px);
+
+            box-shadow:
+                0 6px 16px rgba(79, 70, 229, 0.22);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result-box {
+            margin-top: 28px;
+            padding: 22px;
+
+            background: #f8fafc;
+            border: 1px solid #e4e4e7;
+            border-radius: 14px;
+
+            text-align: center;
+        }
+
+        .result-label {
+            margin-bottom: 6px;
+
+            color: #71717a;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        #result {
+            color: #18181b;
+
+            font-size: 30px;
+            font-weight: 750;
+
+            letter-spacing: -0.8px;
+        }
+
+        .example {
+            margin-top: 18px;
+
+            color: #71717a;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        @media (max-width: 500px) {
+            .card {
+                padding: 26px 22px;
+            }
+
+            h1 {
+                font-size: 27px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+
+        <div class="icon">⏱️</div>
+
+        <h1>Elapsed Time</h1>
+
+        <p class="subtitle">
+            Calculate the time between two points using 24-hour time.
+        </p>
+
+        <div class="input-group">
+            <label for="time1">Start time</label>
+
+            <input
+                id="time1"
+                type="text"
+                placeholder="9 35"
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="input-group">
+            <label for="time2">End time</label>
+
+            <input
+                id="time2"
+                type="text"
+                placeholder="12 16"
+                autocomplete="off"
+            >
+        </div>
+
+        <button onclick="calculateElapsed()">
+            Calculate elapsed time
+        </button>
+
+        <div class="result-box">
+
+            <div class="result-label">
+                Elapsed time
+            </div>
+
+            <div id="result">
+                —
+            </div>
+
+        </div>
+
+        <div class="example">
+            Enter times as HH MM · Example: 9 35
+        </div>
+
+    </div>
+
+
+    <script>
+
+        function calculateElapsed() {
+
+            const time1 = document
+                .getElementById("time1")
+                .value
+                .trim()
+                .split(/\s+/)
+                .map(Number);
+
+            const time2 = document
+                .getElementById("time2")
+                .value
+                .trim()
+                .split(/\s+/)
+                .map(Number);
+
+
+            // Validate input
+            if (
+                time1.length !== 2 ||
+                time2.length !== 2 ||
+                time1.some(isNaN) ||
+                time2.some(isNaN) ||
+                time1[0] < 0 || time1[0] > 23 ||
+                time2[0] < 0 || time2[0] > 23 ||
+                time1[1] < 0 || time1[1] > 59 ||
+                time2[1] < 0 || time2[1] > 59
+            ) {
+
+                document.getElementById("result").textContent =
+                    "Invalid time";
+
+                return;
+            }
+
+
+            // Convert times to minutes since midnight
+            const t1 = time1[0] * 60 + time1[1];
+            const t2 = time2[0] * 60 + time2[1];
+
+
+            // Calculate elapsed time
+            let elapsed = t2 - t1;
+
+
+            // Handle crossing midnight
+            if (elapsed < 0) {
+                elapsed += 24 * 60;
+            }
+
+
+            // Convert back to hours and minutes
+            const hours = Math.floor(elapsed / 60);
+            const minutes = elapsed % 60;
+
+
+            // Display result
+            document.getElementById("result").textContent =
+                `${hours}h ${minutes}m`;
+        }
+
+
+        // Calculate when Enter is pressed
+        document.addEventListener("keydown", function(event) {
+
+            if (event.key === "Enter") {
+                calculateElapsed();
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>
